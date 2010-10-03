@@ -1,0 +1,10 @@
+# Configuration file for growlpeat.
+# <http://github.com/joshdick/growlpeat>
+
+# The password that Growl clients should use to register to growlpeat.
+growlpeat.password = your_password_here
+
+# There should be one growlpeat.client line for each Growl client that growlpeat should repeat Growls to.
+# Format: growlpeat.client = growl_client_address:growl_client_password
+growlpeat.client = 192.168.1.101:secret_password
+growlpeat.client = my.hostname.net:other_password
