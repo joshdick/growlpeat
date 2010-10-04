@@ -13,7 +13,7 @@ that a Growl notification can be consistently repeated to a group of computers r
 the power/network state of any of the computers in the group. This is desirable over relying on any single computer
 in the group to do forwarding.
 
-growlpeat is known to work with Python 2.6.1 and later.
+growlpeat is known to work with Python 2.6.6 and later.
 
 For more information about Growl, visit <http://growl.info>.
 
