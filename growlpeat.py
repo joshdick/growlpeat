@@ -196,15 +196,16 @@ class GrowlpeatConfig:
              if clientInfo.count(':') > 0:
                client = clientInfo.split(':', 1) # Split around the first colon, preserve others.
                host = client[0]
-               # Try connecting to the client to see if it's valid. If so, add it to the global clients list.
-               try:
-                 s = socket(AF_INET, SOCK_DGRAM)
-                 s.connect((host, GROWL_UDP_PORT))
-                 s.close()
-                 global GROWL_CLIENTS
-                 GROWL_CLIENTS.append(client)
-               except:
-                 print 'WARNING: Ignoring properly configured Growl client [{0}]: its hostname can not be resolved.'.format(host)
+               if host != '': # A blank host is invalid.
+                 # Try connecting to the client to see if it's valid. If so, add it to the global clients list.
+                 try:
+                   s = socket(AF_INET, SOCK_DGRAM)
+                   s.connect((host, GROWL_UDP_PORT))
+                   s.close()
+                   global GROWL_CLIENTS
+                   GROWL_CLIENTS.append(client)
+                 except:
+                   print 'WARNING: Ignoring properly configured Growl client [{0}]: its hostname can not be resolved.'.format(host)
            elif configProperty[0] == 'growlpeat.password':
              global GROWLPEAT_PASSWORD
              GROWLPEAT_PASSWORD = configProperty[1]
@@ -215,7 +216,6 @@ class GrowlpeatConfig:
 
   def validate(self):
     """Validates this growlpeat configuraion and terminates growlpeat if the configuration is invalid"""
-
     if GROWLPEAT_PASSWORD == None:
       print 'growlpeat configuration file {0} is missing the growlpeat.password property.'.format(self.config_filename)
       print 'Please add a line to {0} with the following format:'.format(self.config_filename)
@@ -225,7 +225,7 @@ class GrowlpeatConfig:
     numClients = len(GROWL_CLIENTS)
 
     if numClients == 0:
-      print 'growlpeat configuration file {0} contains no valid validn growl clients.'.format(self.config_filename)
+      print 'growlpeat configuration file {0} contains no valid growl clients.'.format(self.config_filename)
       print 'Please add at least one line to {0} with the following format:'.format(self.config_filename)
       print 'growlpeat.client = growl_client_address:growl_client_password'
       sys.exit(1)
