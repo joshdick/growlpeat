@@ -187,10 +187,10 @@ class GrowlpeatConfig:
                client = clientInfo.split(':', 1) # Split around the first colon, preserve others.
                host = client[0]
                if host != '': # A blank host is invalid.
-                   # Add the client to the clients list regardless of whether we can
-                   # actually connect or not, since we may be able to connect later
-                   global GROWL_CLIENTS
-                   GROWL_CLIENTS.append(client)
+                 # Add the client to the clients list regardless of whether we can
+                 # actually connect or not, since we may be able to connect later
+                 global GROWL_CLIENTS
+                 GROWL_CLIENTS.append(client)
            elif configProperty[0] == 'growlpeat.password':
              global GROWLPEAT_PASSWORD
              GROWLPEAT_PASSWORD = configProperty[1]
