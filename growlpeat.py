@@ -13,7 +13,7 @@ that a Growl notification can be consistently repeated to a group of computers r
 the power/network state of any of the computers in the group. This is desirable over relying on any single computer
 in the group to do forwarding.
 
-growlpeat is known to work with Python 2.6.6 and later.
+growlpeat is known to work with Python 2.6.1 and later.
 
 For more information about Growl, visit <http://growl.info>.
 
@@ -69,16 +69,15 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
 
-__version__ = '1.1'
+__version__ = '1.2'
 __author__ = 'Josh Dick <joshdick.net>'
 __email__ = 'josh@joshdick.net'
 __copyright__ = '(C) 2010, Josh Dick'
 __license__ = 'Simplified BSD'
 
-from SocketServer import *
-from socket import AF_INET, SOCK_DGRAM, socket
+#from socket import AF_INET, SOCK_DGRAM, socket
 from hashlib import md5
-import struct, time, sys
+import struct, time, sys, socket, SocketServer
 
 GROWL_UDP_PORT = 9887
 GROWLPEAT_PASSWORD = None
@@ -134,17 +133,8 @@ class GrowlPacket:
       return self.data[6:7+length]
 
 
-class GrowlRelay(UDPServer):
-  """Growl notification relay"""
-  allow_reuse_address = True
-
-  def __init__(self):
-    """Initializes the relay"""
-    UDPServer.__init__(self,('localhost', GROWL_UDP_PORT), _RequestHandler)
-
-
-class _RequestHandler(DatagramRequestHandler):
-  """Processes and logs each incoming notification packet"""
+class IncomingGrowlHandler(SocketServer.DatagramRequestHandler):
+  """Processes and logs each incoming Growl packet"""
 
   # Borrowed from BaseHTTPServer for logging
   monthname = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -166,7 +156,7 @@ class _RequestHandler(DatagramRequestHandler):
         outcome = 'REPEATED'
         for (host, clientPassword) in GROWL_CLIENTS:
             clientPacket = GrowlPacket(receivedPacket.data, clientPassword)
-            s = socket(AF_INET, SOCK_DGRAM)
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.sendto(clientPacket.data, (host, GROWL_UDP_PORT))
             s.close()
 
@@ -197,21 +187,17 @@ class GrowlpeatConfig:
                client = clientInfo.split(':', 1) # Split around the first colon, preserve others.
                host = client[0]
                if host != '': # A blank host is invalid.
-                 # Try connecting to the client to see if it's valid. If so, add it to the global clients list.
-                 try:
-                   s = socket(AF_INET, SOCK_DGRAM)
-                   s.connect((host, GROWL_UDP_PORT))
-                   s.close()
+                   # Add the client to the clients list regardless of whether we can
+                   # actually connect or not, since we may be able to connect later
                    global GROWL_CLIENTS
                    GROWL_CLIENTS.append(client)
-                 except:
-                   print 'WARNING: Ignoring properly configured Growl client [{0}]: its hostname can not be resolved.'.format(host)
            elif configProperty[0] == 'growlpeat.password':
              global GROWLPEAT_PASSWORD
              GROWLPEAT_PASSWORD = configProperty[1]
       configFile.close()
-    except IOError as (errno, strerror):
-      print 'Error reading growlpeat configuration file {0}: [I/O error({1}): {2}]'.format(self.config_filename, errno, strerror)
+    except IOError as (errNum, errText):
+      print 'Encountered an error while reading growlpeat configuration file {0}: [I/O error({1}): {2}]' \
+        .format(self.config_filename, errNum, errText)
       sys.exit(1)
 
   def validate(self):
@@ -240,9 +226,17 @@ if __name__ == '__main__':
   config.read() # Read in the configuration from the property file.
   config.validate() # Make sure the configuration is valid before proceeding.
 
-  relay = GrowlRelay()
+  # Find the correct local IP address to bind to.
+  # If growlpeat isn't binding to the correct address, explicitly set the 'localIP' variable below.
+  localIP = socket.gethostbyname(socket.gethostname())
+
+  SocketServer.UDPServer.allow_reuse_address = True # Attempt to let growlpeat run on the same machine as another Growl client
 
   try:
-    relay.serve_forever()
+    GrowlMessageListener = SocketServer.UDPServer((localIP, GROWL_UDP_PORT), IncomingGrowlHandler)
+    GrowlMessageListener.serve_forever()
+  except socket.error, (errNum, errText):
+    print 'Encountered an error while attempting to listen for Growl messages: [{0}] {1}'.format(errNum, errText)
+    print 'Is growlpeat or a Growl client already running on this computer?'
   except KeyboardInterrupt:
-    print "\nCaught keyboard interrupt...bailing out."
+    print '\nCaught keyboard interrupt...bailing out.'
