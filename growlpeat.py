@@ -38,10 +38,9 @@ Growl clients become aware of the registration.
 | LICENSE / OTHER INFO |
 +----------------------+
 
-growlpeat is based on regrowl 0.6.2 by Rui Carmo <http://the.taoofmac.com>, which appears to no longer be maintained.
-regrowl was released under a BSD license. Hence, growlpeat is as well.
-regrowl's web site no longer exists, but Google's cached version is available here:
-http://webcache.googleusercontent.com/search?q=cache:5XaGmCjdM90J:the.taoofmac.com/space/projects/ReGrowl+regrowl&cd=1&hl=en&ct=clnk&gl=us
+growlpeat is based on ReGrowl 0.6.2 by Rui Carmo <http://the.taoofmac.com>.
+ReGrowl is released under a BSD license; therefore, growlpeat is as well.
+ReGrowl is available here: <http://www.taoofmac.com/projects/regrowl>
 
 ---
 
